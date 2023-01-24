@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { useLocalStorage } from 'components/hooks/hooks.js';
-import { nanoid } from 'nanoid';
-import Notiflix from 'notiflix';
+import { useSelector } from 'react-redux';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+import { getContacts, getFilter } from 'redux/selectors.js';
+import { setFilter } from 'redux/filterSlice.js';
 
 import { AppTitle, ContactsTitle, Container } from './App.styled.js';
 import InputForm from 'components/InputForm';
@@ -9,51 +11,32 @@ import ContactList from 'components/ContactList';
 import Filter from 'components/Filter';
 
 const App = () => {
-  const [contacts, setContacts] = useLocalStorage([]);
-  const [filter, setFilter] = useState('');
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilter);
 
-  function getVisibleContacts() {
+  const handlerInputChange = evt => {
+    const { value } = evt.target;
+    setFilter(value);
+  };
+
+  const getVisibleContacts = () => {
     return [
       ...contacts.filter(contact =>
         contact.name.toLowerCase().includes(filter)
       ),
     ];
-  }
-
-  const addContactHandler = ({ name, number }) => {
-    contacts.some(contact => contact.name === name)
-      ? Notiflix.Notify.info(`${name} is already in contacts.`)
-      : setContacts([
-          {
-            id: nanoid(),
-            name: name.trim(),
-            number,
-          },
-          ...contacts,
-        ]);
-  };
-
-  const filterChangeHandler = evt => {
-    const normalizedStr = evt.target.value.trim().toLowerCase();
-    setFilter(normalizedStr);
-  };
-
-  const deleteContactHandler = id => {
-    setContacts(contacts.filter(contact => contact.id !== id));
   };
 
   return (
     <Container>
       <AppTitle>Phonebook</AppTitle>
-      <InputForm contacts={contacts} onSubmit={addContactHandler}></InputForm>
+      <InputForm />
       <ContactsTitle>Contacts</ContactsTitle>
-      <Filter value={filter} onChange={filterChangeHandler} />
+      <Filter onChange={handlerInputChange} />
       {!!contacts && (
-        <ContactList
-          contacts={getVisibleContacts()}
-          onClick={deleteContactHandler}
-        ></ContactList>
+        <ContactList contacts={getVisibleContacts()}></ContactList>
       )}
+      <ToastContainer />
     </Container>
   );
 };
