@@ -1,12 +1,13 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 import { addContact } from 'redux/contactsSlice.js';
-import { getContacts } from 'redux/selectors.js';
+import { getContacts } from 'redux/contactsSlice.js';
 import { Form, StyledInput, StyledLabel, Button } from './InputForm.styled.js';
 
 const InputForm = () => {
-  const dispatch = useDispatch();
   const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
 
   const handleSubmit = evt => {
     evt.preventDefault();
@@ -15,9 +16,15 @@ const InputForm = () => {
     const contactName = name.value;
     const contactNumber = number.value;
 
-    if (!contacts.some(contact => contact.name === contactName)) form.reset();
-
-    dispatch(addContact(contactName, contactNumber));
+    if (
+      !contacts?.length ||
+      !contacts.some(contact => contact.name === contactName)
+    ) {
+      form.reset();
+      dispatch(addContact(contactName, contactNumber));
+    } else {
+      toast.warning('Contact with such name exists yet.');
+    }
   };
 
   return (
